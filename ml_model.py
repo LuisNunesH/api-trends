@@ -1,13 +1,8 @@
-def analyze_trends(transactions):
-    import pandas as pd
-    from sklearn.linear_model import LinearRegression
-    import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+import numpy as np
 
 def analyze_trends(transactions):
-    import pandas as pd
-    from sklearn.linear_model import LinearRegression
-    import numpy as np
-
     df = pd.DataFrame(transactions)
 
     required_columns = ["amount", "transaction_date", "type"]
@@ -41,11 +36,51 @@ def analyze_trends(transactions):
             ]
             future_predictions = model.predict(np.array(future_dates).reshape(-1, 1))
 
-            # Garantir que os valores sejam sempre positivos
             future_predictions = np.abs(future_predictions)
             predictions[transaction_type] = list(future_predictions)
 
     return {
         "current_trends": trends.to_dict(orient="records"),
         "predictions": predictions
+    }
+
+def predict_total(user_id, accounts, months):
+    import numpy as np
+    import pandas as pd
+    from sklearn.linear_model import LinearRegression
+
+    df = pd.DataFrame(accounts)
+
+    if 'date' not in df.columns or 'money' not in df.columns:
+        raise ValueError("As colunas 'date' e 'money' são obrigatórias.")
+
+    df['date'] = pd.to_datetime(df['date'])
+    df['timestamp'] = (df['date'] - df['date'].min()).dt.days
+    df['money'] = df['money'].fillna(0)
+
+    X = df[['timestamp']].values
+    y = df['money'].values
+    model = LinearRegression()
+    model.fit(X, y)
+
+    days_in_month = 30
+    last_timestamp = df['timestamp'].max()
+    future_timestamps = np.array([
+        last_timestamp + i * days_in_month for i in range(1, months + 1)
+    ]).reshape(-1, 1)
+
+    future_predictions = model.predict(future_timestamps)
+
+    predicted_total = future_predictions[-1]
+
+    prediction_type = "spend" if predicted_total < 0 else "income"
+    predicted_total_abs = abs(predicted_total)
+
+    return {
+        "user_id": user_id,
+        "months": months,
+        "prediction": {
+            "predicted_total": round(predicted_total_abs, 2)
+        },
+        "type": prediction_type
     }
