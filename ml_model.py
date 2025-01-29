@@ -45,10 +45,6 @@ def analyze_trends(transactions):
     }
 
 def predict_total(user_id, accounts, months):
-    import numpy as np
-    import pandas as pd
-    from sklearn.linear_model import LinearRegression
-
     df = pd.DataFrame(accounts)
 
     if 'date' not in df.columns or 'money' not in df.columns:
@@ -73,14 +69,10 @@ def predict_total(user_id, accounts, months):
 
     predicted_total = future_predictions[-1]
 
-    prediction_type = "spend" if predicted_total < 0 else "income"
-    predicted_total_abs = abs(predicted_total)
-
     return {
         "user_id": user_id,
         "months": months,
         "prediction": {
-            "predicted_total": round(predicted_total_abs, 2)
-        },
-        "type": prediction_type
+            "predicted_total": round(predicted_total, 2)
+        }
     }
