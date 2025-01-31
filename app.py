@@ -37,3 +37,5 @@ async def predict_total_endpoint(data: TotalPredictionRequest):
         return prediction
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+# uvicorn app:app --reload --port 8080
